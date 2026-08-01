@@ -162,7 +162,7 @@
   },
   "digest": {
     "max_items": 12,
-    "profile_order": ["finance-news"],
+    "profile_order": ["finance-news", "tech-news", "tech-blog"],
     "category_groups": {
       "A股与中国市场": {
         "name": "A股与中国市场",
