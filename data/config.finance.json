@@ -16,7 +16,7 @@
     "default_profile": "finance-news",
     "profile_settings": {
       "finance-news": {
-        "threshold": 4.8,
+        "threshold": 2.5,
         "topic_dedup": true
       }
     }
@@ -161,7 +161,7 @@
     "time_window_hours": 30
   },
   "digest": {
-    "max_items": 12,
+    "max_items": 16,
     "profile_order": ["finance-news", "tech-news", "tech-blog"],
     "category_groups": {
       "A股与中国市场": {

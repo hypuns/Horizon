@@ -4,7 +4,7 @@ This fork adds a finance-focused Horizon run for Feishu/Lark push delivery.
 
 ## What It Does
 
-- Runs twice daily at 08:00 and 20:00 Asia/Shanghai.
+- Runs four times daily at 08:00, 12:00, 20:00, and 00:00 Asia/Shanghai.
 - Fetches finance news from TianAPI, Google News RSS, GDELT, CNBC Finance, and BBC Business.
 - Uses Aliyun Bailian/DashScope compatible mode with `qwen-plus`.
 - Sends a Chinese Feishu interactive card to your custom bot webhook.
@@ -61,12 +61,14 @@ uv run horizon --hours 14
 GitHub Actions cron uses UTC:
 
 ```text
-0 0,12 * * *
+0 0,4,12,16 * * *
 ```
 
 That maps to:
 
 ```text
 08:00 Asia/Shanghai
+12:00 Asia/Shanghai
 20:00 Asia/Shanghai
+00:00 Asia/Shanghai
 ```
