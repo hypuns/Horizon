@@ -9,6 +9,7 @@ This fork adds a finance-focused Horizon run for Feishu/Lark push delivery.
 - Uses Aliyun Bailian/DashScope compatible mode with `qwen-plus`.
 - Sends a Chinese Feishu interactive card to your custom bot webhook.
 - Uses a zero score threshold so every successfully analyzed finance item can be considered; `digest.max_items` controls message length.
+- Limits AI analysis to the 30 most recent items and pushes up to 15 selected items.
 
 ## Required GitHub Secrets
 

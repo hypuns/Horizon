@@ -269,8 +269,10 @@ class HorizonOrchestrator:
                     f"→ {len(merged_items)} unique items\n"
                 )
 
+            analysis_items = self.limit_items_for_analysis(merged_items)
+
             # 4. Analyze with AI
-            analyzed_items = await self.analyze_items(merged_items)
+            analyzed_items = await self.analyze_items(analysis_items)
             self.console.print(
                 f"{self.icons['ai']} Analyzed {len(analyzed_items)} items with AI\n"
             )
@@ -300,7 +302,7 @@ class HorizonOrchestrator:
                     profile_names=self.profiles.names,
                     profile_order=self.config.digest.profile_order,
                 )
-                summary = await summarizer.generate_summary(important_items, today, len(all_items), language=lang)
+                summary = await summarizer.generate_summary(important_items, today, len(analyzed_items), language=lang)
 
                 # Save to data/summaries/
                 summary_path = self.storage.save_daily_summary(today, summary, language=lang)
@@ -363,7 +365,7 @@ class HorizonOrchestrator:
                     await self.webhook_notifier.send_daily_summary(
                         summary=summary,
                         important_items=important_items,
-                        all_items_count=len(all_items),
+                        all_items_count=len(analyzed_items),
                         date=today,
                         lang=lang,
                         summarizer=summarizer,
@@ -780,6 +782,24 @@ class HorizonOrchestrator:
             topic_dedup_removed=topic_dedup_removed,
             balanced_digest=balanced_digest,
         )
+
+    def limit_items_for_analysis(self, items: List[ContentItem]) -> List[ContentItem]:
+        """Limit the AI analysis workload while keeping the most recent items."""
+        limit = self.config.digest.max_analysis_items
+        if limit is None or len(items) <= limit:
+            return items
+
+        sorted_items = sorted(
+            items,
+            key=lambda item: item.published_at or datetime.min.replace(tzinfo=timezone.utc),
+            reverse=True,
+        )
+        limited = sorted_items[:limit]
+        self.console.print(
+            f"{self.icons['filter']} Limiting AI analysis to {len(limited)}/"
+            f"{len(items)} most recent items\n"
+        )
+        return limited
 
     async def select_digest_items(
         self,
