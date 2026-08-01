@@ -8,6 +8,7 @@ This fork adds a finance-focused Horizon run for Feishu/Lark push delivery.
 - Fetches finance news from TianAPI, Google News RSS, GDELT, CNBC Finance, and BBC Business.
 - Uses Aliyun Bailian/DashScope compatible mode with `qwen-plus`.
 - Sends a Chinese Feishu interactive card to your custom bot webhook.
+- Uses a zero score threshold so every successfully analyzed finance item can be considered; `digest.max_items` controls message length.
 
 ## Required GitHub Secrets
 

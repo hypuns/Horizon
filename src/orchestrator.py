@@ -841,6 +841,8 @@ class HorizonOrchestrator:
         if effective_threshold is None:
             return True
         score = item.processing.analysis.score
+        if score is None and effective_threshold <= 0:
+            return True
         return score is not None and score >= effective_threshold
 
     def apply_balanced_digest(
