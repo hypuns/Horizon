@@ -23,6 +23,7 @@ from .scrapers.telegram import TelegramScraper
 from .scrapers.twitter import TwitterScraper
 from .scrapers.twitter_playwright import TwitterPlaywrightScraper
 from .scrapers.openbb import OpenBBScraper
+from .scrapers.tianapi import TianAPIScraper
 from .scrapers.ossinsight import OSSInsightScraper
 from .scrapers.gdelt import GDELTScraper
 from .scrapers.google_news import GoogleNewsScraper
@@ -467,6 +468,11 @@ class HorizonOrchestrator:
             if self.config.sources.openbb and self.config.sources.openbb.enabled:
                 openbb_scraper = OpenBBScraper(self.config.sources.openbb, client)
                 tasks.append(self._fetch_with_progress("OpenBB", openbb_scraper, since))
+
+            # TianAPI (Chinese financial news endpoints)
+            if self.config.sources.tianapi and self.config.sources.tianapi.enabled:
+                tianapi_scraper = TianAPIScraper(self.config.sources.tianapi, client)
+                tasks.append(self._fetch_with_progress("TianAPI", tianapi_scraper, since))
 
             # OSS Insight trending repos
             if self.config.sources.ossinsight and self.config.sources.ossinsight.enabled:

@@ -1,0 +1,201 @@
+{
+  "ai": {
+    "provider": "ali",
+    "model": "qwen-plus",
+    "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+    "api_key_env": "DASHSCOPE_API_KEY",
+    "temperature": 0.2,
+    "max_tokens": 4096,
+    "throttle_sec": 0,
+    "analysis_concurrency": 1,
+    "enrichment_concurrency": 1,
+    "languages": ["zh"]
+  },
+  "processing": {
+    "profiles_dir": "profiles",
+    "default_profile": "finance-news",
+    "profile_settings": {
+      "finance-news": {
+        "threshold": 6.5,
+        "topic_dedup": true
+      }
+    }
+  },
+  "display": {
+    "icon_style": "ascii"
+  },
+  "email": {
+    "enabled": false
+  },
+  "sources": {
+    "github": [],
+    "hackernews": {
+      "enabled": false
+    },
+    "rss": [
+      {
+        "name": "CNBC Finance",
+        "url": "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10000664",
+        "enabled": true,
+        "category": "us-finance",
+        "profile": "finance-news",
+        "content_extractor": "trafilatura"
+      },
+      {
+        "name": "BBC Business",
+        "url": "https://feeds.bbci.co.uk/news/business/rss.xml",
+        "enabled": true,
+        "category": "global-business",
+        "profile": "finance-news",
+        "content_extractor": "trafilatura"
+      }
+    ],
+    "reddit": {
+      "enabled": false
+    },
+    "twitter": {
+      "enabled": false
+    },
+    "telegram": {
+      "enabled": false,
+      "channels": []
+    },
+    "openbb": {
+      "enabled": false,
+      "fetch_filings": false,
+      "watchlists": []
+    },
+    "tianapi": {
+      "enabled": true,
+      "api_key_env": "TIANAPI_KEY",
+      "channels": [
+        {
+          "name": "综合财经",
+          "enabled": true,
+          "num": 20,
+          "category": "china-finance",
+          "profile": "finance-news"
+        },
+        {
+          "name": "A股",
+          "enabled": true,
+          "word": "A股",
+          "num": 10,
+          "category": "a-share",
+          "profile": "finance-news"
+        },
+        {
+          "name": "美股",
+          "enabled": true,
+          "word": "美股",
+          "num": 10,
+          "category": "us-stocks",
+          "profile": "finance-news"
+        },
+        {
+          "name": "外汇",
+          "enabled": true,
+          "word": "外汇 人民币 美元",
+          "num": 10,
+          "category": "fx",
+          "profile": "finance-news"
+        },
+        {
+          "name": "宏观经济",
+          "enabled": true,
+          "word": "宏观经济 央行 财政 政策",
+          "num": 10,
+          "category": "macro",
+          "profile": "finance-news"
+        },
+        {
+          "name": "财报",
+          "enabled": true,
+          "word": "财报 业绩 指引",
+          "num": 10,
+          "category": "earnings",
+          "profile": "finance-news"
+        },
+        {
+          "name": "国际局势",
+          "enabled": true,
+          "word": "国际局势 地缘政治 贸易 制裁",
+          "num": 10,
+          "category": "geopolitics",
+          "profile": "finance-news"
+        }
+      ]
+    },
+    "ossinsight": {
+      "enabled": false
+    },
+    "gdelt": {
+      "enabled": true,
+      "query": "(stock market OR currency OR central bank OR earnings OR China economy OR geopolitics OR sanctions OR trade war)",
+      "mode": "ArtList",
+      "max_records": 75,
+      "timespan": null,
+      "language": "english",
+      "country": null,
+      "category": "global-finance",
+      "profile": "finance-news"
+    },
+    "google_news": {
+      "enabled": true,
+      "query": "(A shares OR China stocks OR US stocks OR forex OR yuan OR dollar OR macro economy OR earnings OR geopolitics)",
+      "language": "zh-CN",
+      "country": "CN",
+      "ceid": "CN:zh-Hans",
+      "max_results": 80,
+      "category": "finance-search",
+      "profile": "finance-news"
+    }
+  },
+  "collection": {
+    "time_window_hours": 14
+  },
+  "digest": {
+    "max_items": 12,
+    "profile_order": ["finance-news"],
+    "category_groups": {
+      "A股与中国市场": {
+        "name": "A股与中国市场",
+        "categories": ["a-share", "china-finance"],
+        "limit": 4
+      },
+      "美股与海外市场": {
+        "name": "美股与海外市场",
+        "categories": ["us-stocks", "us-finance", "global-business"],
+        "limit": 3
+      },
+      "外汇与宏观": {
+        "name": "外汇与宏观",
+        "categories": ["fx", "macro"],
+        "limit": 3
+      },
+      "财报与公司事件": {
+        "name": "财报与公司事件",
+        "categories": ["earnings"],
+        "limit": 3
+      },
+      "国际局势与风险": {
+        "name": "国际局势与风险",
+        "categories": ["geopolitics", "global-finance", "finance-search"],
+        "limit": 3
+      }
+    },
+    "default_group": "其他重要财经新闻",
+    "default_group_limit": 4
+  },
+  "webhook": {
+    "enabled": true,
+    "url_env": "HORIZON_WEBHOOK_URL",
+    "delivery": "summary",
+    "overview_position": "first",
+    "platform": "feishu",
+    "layout": "collapsible",
+    "fallback_layout": "markdown",
+    "languages": ["zh"],
+    "headers": ""
+  }
+}

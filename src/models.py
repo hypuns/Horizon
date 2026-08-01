@@ -17,6 +17,7 @@ class SourceType(str, Enum):
     TELEGRAM = "telegram"
     TWITTER = "twitter"
     OPENBB = "openbb"
+    TIANAPI = "tianapi"
     OSSINSIGHT = "ossinsight"
     GDELT = "gdelt"
     GOOGLE_NEWS = "google_news"
@@ -38,6 +39,7 @@ SOURCE_REGISTRY = {
     SourceType.TELEGRAM.value: SourceDefinition("telegram", item_fields=("channels",)),
     SourceType.TWITTER.value: SourceDefinition("twitter", item_fields=("users",)),
     SourceType.OPENBB.value: SourceDefinition("openbb", item_fields=("watchlists",)),
+    SourceType.TIANAPI.value: SourceDefinition("tianapi", item_fields=("channels",)),
     SourceType.OSSINSIGHT.value: SourceDefinition("ossinsight"),
     SourceType.GDELT.value: SourceDefinition("gdelt"),
     SourceType.GOOGLE_NEWS.value: SourceDefinition("google_news"),
@@ -374,6 +376,33 @@ class OpenBBConfig(BaseModel):
     filings_provider: str = "sec"
 
 
+class TianAPIChannelConfig(BaseModel):
+    """A TianAPI news endpoint/channel to fetch.
+
+    The default endpoint is TianAPI's general finance endpoint. For more
+    specific finance pages exposed through TianAPI's web-to-API endpoint,
+    set ``urlid`` according to TianAPI's documentation.
+    """
+
+    name: str
+    enabled: bool = True
+    endpoint: str = "https://apis.tianapi.com/caijing/index"
+    urlid: Optional[int] = None
+    word: Optional[str] = None
+    num: int = 10
+    page: int = 1
+    category: Optional[str] = None
+    profile: ProfileRoute = None
+
+
+class TianAPIConfig(BaseModel):
+    """TianAPI financial news source configuration."""
+
+    enabled: bool = False
+    api_key_env: str = "TIANAPI_KEY"
+    channels: List[TianAPIChannelConfig] = Field(default_factory=list)
+
+
 class OSSInsightConfig(BaseModel):
     """OSS Insight trending repos source configuration.
 
@@ -446,6 +475,7 @@ class SourcesConfig(BaseModel):
     telegram: TelegramConfig = Field(default_factory=TelegramConfig)
     twitter: Optional[TwitterConfig] = None
     openbb: Optional[OpenBBConfig] = None
+    tianapi: Optional[TianAPIConfig] = None
     ossinsight: OSSInsightConfig = Field(default_factory=OSSInsightConfig)
     gdelt: Optional[GDELTConfig] = None
     google_news: Optional[GoogleNewsConfig] = None

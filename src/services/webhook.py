@@ -1,9 +1,13 @@
 """Webhook notification service for Horizon."""
 
+import base64
+import hashlib
+import hmac
 import json
 import logging
 import os
 import re
+import time
 from rich.console import Console
 from dataclasses import asdict, dataclass
 from enum import Enum
@@ -169,6 +173,43 @@ def _isjson(s: str) -> bool:
 def _is_feishu_platform(platform: str) -> bool:
     """Return whether platform should use Feishu/Lark card rendering."""
     return platform.lower() in {"feishu", "lark"}
+
+
+def _feishu_sign(secret: str) -> tuple[str, str]:
+    """Return Feishu/Lark custom bot timestamp and signature."""
+    timestamp = str(int(time.time()))
+    string_to_sign = f"{timestamp}\n{secret}"
+    digest = hmac.new(
+        string_to_sign.encode("utf-8"),
+        b"",
+        digestmod=hashlib.sha256,
+    ).digest()
+    return timestamp, base64.b64encode(digest).decode("utf-8")
+
+
+def _maybe_add_feishu_signature(
+    platform: str, body_content: str | None
+) -> str | None:
+    """Add Feishu/Lark custom bot signature fields when FEISHU_SECRET is set."""
+    if body_content is None or not _is_feishu_platform(platform):
+        return body_content
+
+    secret = os.getenv("FEISHU_SECRET", "").strip()
+    if not secret:
+        return body_content
+
+    try:
+        payload = json.loads(body_content)
+    except json.JSONDecodeError:
+        return body_content
+
+    if not isinstance(payload, dict):
+        return body_content
+
+    timestamp, sign = _feishu_sign(secret)
+    payload["timestamp"] = timestamp
+    payload["sign"] = sign
+    return json.dumps(payload, ensure_ascii=False)
 
 
 def _text(value: str) -> dict[str, str]:
@@ -339,6 +380,7 @@ class WebhookNotifier:
 
         headers = _extract_headers(self.config.headers)
         headers["Content-Type"] = content_type
+        body_content = _maybe_add_feishu_signature(self.config.platform, body_content)
         return request_url, body_content, headers
 
     def _can_use_feishu_collapsible(self) -> bool:
