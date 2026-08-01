@@ -37,4 +37,4 @@ jobs:
           TIANAPI_KEY: ${{ secrets.TIANAPI_KEY }}
           HORIZON_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK }}
           FEISHU_SECRET: ${{ secrets.FEISHU_SECRET }}
-        run: uv run horizon --hours 14
+        run: uv run horizon --hours 30

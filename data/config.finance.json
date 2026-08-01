@@ -16,7 +16,7 @@
     "default_profile": "finance-news",
     "profile_settings": {
       "finance-news": {
-        "threshold": 6.5,
+        "threshold": 4.8,
         "topic_dedup": true
       }
     }
@@ -158,7 +158,7 @@
     }
   },
   "collection": {
-    "time_window_hours": 14
+    "time_window_hours": 30
   },
   "digest": {
     "max_items": 12,
