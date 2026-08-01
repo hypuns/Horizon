@@ -25,7 +25,13 @@
     "icon_style": "ascii"
   },
   "email": {
-    "enabled": false
+    "enabled": false,
+    "smtp_server": "smtp.qq.com",
+    "smtp_port": 465,
+    "imap_server": "imap.qq.com",
+    "imap_port": 993,
+    "email_address": "disabled@example.com",
+    "sender_name": "Horizon Finance"
   },
   "sources": {
     "github": [],
