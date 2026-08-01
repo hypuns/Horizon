@@ -16,7 +16,7 @@
     "default_profile": "finance-news",
     "profile_settings": {
       "finance-news": {
-        "threshold": 2.5,
+        "threshold": 0,
         "topic_dedup": true
       }
     }
