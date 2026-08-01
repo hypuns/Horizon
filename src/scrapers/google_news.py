@@ -153,6 +153,8 @@ class GoogleNewsScraper(BaseScraper):
 
             meta = {
                 "gn_query": self.gn_config.query,
+                "gn_language": self.gn_config.language,
+                "gn_country": self.gn_config.country,
                 "source_name": source_name,
                 "category": self.gn_config.category,
             }

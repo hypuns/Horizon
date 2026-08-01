@@ -487,9 +487,24 @@ class WebhookNotifier:
 
     @staticmethod
     def _is_domestic_item(item: ContentItem) -> bool:
+        if item.source_type.value == "tianapi":
+            return True
+
         category = item.metadata.get("category")
         if isinstance(category, str) and category in _DOMESTIC_CATEGORIES:
             return True
+
+        gn_country = item.metadata.get("gn_country")
+        gn_language = item.metadata.get("gn_language")
+        if gn_country == "CN" or str(gn_language or "").lower().startswith("zh"):
+            return True
+
+        feed_name = str(item.metadata.get("feed_name") or "").lower()
+        if any(name in feed_name for name in ("cnbc", "bbc")):
+            return False
+
+        if item.source_type.value == "gdelt":
+            return False
 
         haystack = " ".join(
             str(part or "")

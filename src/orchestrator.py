@@ -784,20 +784,66 @@ class HorizonOrchestrator:
         )
 
     def limit_items_for_analysis(self, items: List[ContentItem]) -> List[ContentItem]:
-        """Limit the AI analysis workload while keeping the most recent items."""
+        """Limit the AI analysis workload while keeping recent domestic/global balance."""
         limit = self.config.digest.max_analysis_items
         if limit is None or len(items) <= limit:
             return items
 
-        sorted_items = sorted(
-            items,
-            key=lambda item: item.published_at or datetime.min.replace(tzinfo=timezone.utc),
-            reverse=True,
-        )
-        limited = sorted_items[:limit]
+        def sort_key(item: ContentItem) -> datetime:
+            published = item.published_at
+            if published.tzinfo is None:
+                published = published.replace(tzinfo=timezone.utc)
+            return published
+
+        domestic_categories = {"a-share", "china-finance", "fx", "macro"}
+
+        def is_domestic(item: ContentItem) -> bool:
+            if item.source_type.value == "tianapi":
+                return True
+            category = item.metadata.get("category")
+            if isinstance(category, str) and category in domestic_categories:
+                return True
+            if item.metadata.get("gn_country") == "CN":
+                return True
+            language = str(item.metadata.get("gn_language") or "").lower()
+            if language.startswith("zh"):
+                return True
+            haystack = " ".join(
+                str(part or "")
+                for part in [
+                    item.title,
+                    item.author,
+                    item.metadata.get("channel"),
+                    item.metadata.get("source_name"),
+                    category,
+                ]
+            )
+            return any(
+                term in haystack
+                for term in ["A股", "a股", "中国", "人民币", "央行", "财政", "港股"]
+            )
+
+        domestic = sorted([item for item in items if is_domestic(item)], key=sort_key, reverse=True)
+        international = sorted([item for item in items if not is_domestic(item)], key=sort_key, reverse=True)
+        domestic_quota = limit // 2
+        international_quota = limit - domestic_quota
+
+        limited = domestic[:domestic_quota] + international[:international_quota]
+        if len(limited) < limit:
+            selected_ids = {item.id for item in limited}
+            overflow = [
+                item
+                for item in sorted(items, key=sort_key, reverse=True)
+                if item.id not in selected_ids
+            ]
+            limited.extend(overflow[: limit - len(limited)])
+
+        limited.sort(key=sort_key, reverse=True)
         self.console.print(
             f"{self.icons['filter']} Limiting AI analysis to {len(limited)}/"
-            f"{len(items)} most recent items\n"
+            f"{len(items)} items "
+            f"(domestic: {sum(1 for item in limited if is_domestic(item))}, "
+            f"international: {sum(1 for item in limited if not is_domestic(item))})\n"
         )
         return limited
 
