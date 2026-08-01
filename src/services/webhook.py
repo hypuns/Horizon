@@ -500,6 +500,8 @@ class WebhookNotifier:
             return True
 
         feed_name = str(item.metadata.get("feed_name") or "").lower()
+        if any(name in feed_name for name in ("财联社", "金十", "financial times china")):
+            return True
         if any(name in feed_name for name in ("cnbc", "bbc")):
             return False
 

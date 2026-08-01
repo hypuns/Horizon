@@ -808,6 +808,9 @@ class HorizonOrchestrator:
             language = str(item.metadata.get("gn_language") or "").lower()
             if language.startswith("zh"):
                 return True
+            feed_name = str(item.metadata.get("feed_name") or "").lower()
+            if any(name in feed_name for name in ("财联社", "金十", "financial times china")):
+                return True
             haystack = " ".join(
                 str(part or "")
                 for part in [

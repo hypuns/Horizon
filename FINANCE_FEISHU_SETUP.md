@@ -6,6 +6,7 @@ This fork adds a finance-focused Horizon run for Feishu/Lark push delivery.
 
 - Runs four times daily at 08:00, 12:00, 20:00, and 00:00 Asia/Shanghai.
 - Fetches finance news from TianAPI, Google News RSS, GDELT, CNBC Finance, and BBC Business.
+- Adds targeted feeds for 财联社, 金十, Reuters, Bloomberg, Financial Times, and TradingView News Flow.
 - Uses Aliyun Bailian/DashScope compatible mode with `qwen-plus`.
 - Sends a Chinese Feishu interactive card to your custom bot webhook.
 - Uses a zero score threshold so every successfully analyzed finance item can be considered; `digest.max_items` controls message length.

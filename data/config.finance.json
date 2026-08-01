@@ -54,6 +54,83 @@
         "category": "global-business",
         "profile": "finance-news",
         "content_extractor": "trafilatura"
+      },
+      {
+        "name": "财联社电报",
+        "url": "https://rsshub.cups.moe/cls/telegraph",
+        "enabled": true,
+        "category": "china-finance",
+        "profile": "finance-news"
+      },
+      {
+        "name": "财联社深度",
+        "url": "https://rsshub.cups.moe/cls/depth",
+        "enabled": true,
+        "category": "china-finance",
+        "profile": "finance-news"
+      },
+      {
+        "name": "金十重要快讯",
+        "url": "https://rsshub.cups.moe/jin10/1",
+        "enabled": true,
+        "category": "macro",
+        "profile": "finance-news"
+      },
+      {
+        "name": "Reuters Business",
+        "url": "https://rsshub.cups.moe/reuters/business",
+        "enabled": true,
+        "category": "global-business",
+        "profile": "finance-news"
+      },
+      {
+        "name": "Reuters Markets",
+        "url": "https://news.google.com/rss/search?q=site%3Areuters.com%2Fmarkets%20%28stocks%20OR%20bonds%20OR%20dollar%20OR%20Fed%20OR%20China%29&hl=en-US&gl=US&ceid=US:en",
+        "enabled": true,
+        "category": "global-finance",
+        "profile": "finance-news"
+      },
+      {
+        "name": "Bloomberg Markets",
+        "url": "https://feeds.bloomberg.com/markets/news.rss",
+        "enabled": true,
+        "category": "global-finance",
+        "profile": "finance-news"
+      },
+      {
+        "name": "Bloomberg Economics",
+        "url": "https://feeds.bloomberg.com/economics/news.rss",
+        "enabled": true,
+        "category": "global-finance",
+        "profile": "finance-news"
+      },
+      {
+        "name": "Financial Times Markets",
+        "url": "https://www.ft.com/markets?format=rss",
+        "enabled": true,
+        "category": "global-finance",
+        "profile": "finance-news"
+      },
+      {
+        "name": "Financial Times Global Economy",
+        "url": "https://www.ft.com/global-economy?format=rss",
+        "enabled": true,
+        "category": "global-finance",
+        "profile": "finance-news"
+      },
+      {
+        "name": "Financial Times China",
+        "url": "https://www.ft.com/china?format=rss",
+        "enabled": true,
+        "category": "china-finance",
+        "profile": "finance-news"
+      },
+      {
+        "name": "TradingView News Flow",
+        "url": "https://news.google.com/rss/search?q=site%3Atradingview.com%2Fnews%20%28stocks%20OR%20forex%20OR%20earnings%20OR%20macro%20OR%20market%29&hl=en-US&gl=US&ceid=US:en",
+        "enabled": true,
+        "category": "global-finance",
+        "profile": "finance-news"
       }
     ],
     "reddit": {
