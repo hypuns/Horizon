@@ -391,22 +391,34 @@ class WebhookNotifier:
 
     def _build_feishu_collapsible_overview(
         self,
-        item_count: int,
+        important_items: List[ContentItem],
         all_items_count: int,
         date: str,
         lang: str,
     ) -> str:
         """Build a non-redundant overview for a card that already lists item panels."""
+        item_count = len(important_items)
+        highlighted = self._highlight_items(important_items)
         if lang == "zh":
             if item_count == 0:
                 return (
                     f"# Horizon 每日速递 - {date}\n\n"
                     f"> 已分析 {all_items_count} 条内容，暂无达到重要性阈值的资讯。"
                 )
+            highlight_block = ""
+            if highlighted:
+                lines = ["\n\n**重点关注**"]
+                for index, item in highlighted:
+                    title = self._item_display_title(item, lang)
+                    score = self._item_score(item)
+                    score_suffix = f" ⭐️ {score}/10" if score != "?" else ""
+                    lines.append(f"{index}. {title}{score_suffix}")
+                highlight_block = "\n".join(lines)
             return (
                 f"# Horizon 每日速递 - {date}\n\n"
-                f"> 从 {all_items_count} 条内容中筛选出 {item_count} 条重要资讯。\n\n"
-                "点击下方新闻面板即可在飞书内展开阅读全文。"
+                f"> 已分析 {all_items_count} 条内容，本次推送 {item_count} 条候选资讯。"
+                f"{highlight_block}\n\n"
+                "下方为全部推送资讯，点击新闻面板即可在飞书内展开阅读全文。"
             )
 
         if item_count == 0:
@@ -415,11 +427,41 @@ class WebhookNotifier:
                 f"> Analyzed {all_items_count} items, but none met the importance threshold."
             )
 
+        highlight_block = ""
+        if highlighted:
+            lines = ["\n\n**Key Items**"]
+            for index, item in highlighted:
+                title = self._item_display_title(item, lang)
+                score = self._item_score(item)
+                score_suffix = f" ⭐️ {score}/10" if score != "?" else ""
+                lines.append(f"{index}. {title}{score_suffix}")
+            highlight_block = "\n".join(lines)
         return (
             f"# Horizon Daily - {date}\n\n"
-            f"> Selected {item_count} important items from {all_items_count} fetched items.\n\n"
-            "Expand the panels below to read the full briefing inside Feishu/Lark."
+            f"> Analyzed {all_items_count} items and pushed {item_count} candidate items."
+            f"{highlight_block}\n\n"
+            "All pushed items are listed below. Expand a panel to read the details."
         )
+
+    @staticmethod
+    def _item_score(item: ContentItem) -> float | str:
+        analysis = item.processing.analysis if item.processing else None
+        score = analysis.score if analysis else None
+        return score if score is not None else "?"
+
+    @staticmethod
+    def _item_display_title(item: ContentItem, lang: str) -> str:
+        artifact = item.processing.artifacts.get(lang) if item.processing else None
+        return artifact.title if artifact else item.title
+
+    def _highlight_items(self, items: List[ContentItem]) -> list[tuple[int, ContentItem]]:
+        scored: list[tuple[int, ContentItem, float]] = []
+        for index, item in enumerate(items, start=1):
+            score = self._item_score(item)
+            if isinstance(score, (int, float)) and score >= 7:
+                scored.append((index, item, float(score)))
+        scored.sort(key=lambda entry: entry[2], reverse=True)
+        return [(index, item) for index, item, _ in scored[:5]]
 
     def _build_feishu_collapsible_body(
         self,
@@ -431,7 +473,7 @@ class WebhookNotifier:
     ) -> dict[str, Any]:
         """Build a single Feishu Card JSON 2.0 message with collapsed item details."""
         overview = self._build_feishu_collapsible_overview(
-            item_count=len(important_items),
+            important_items=important_items,
             all_items_count=all_items_count,
             date=date,
             lang=lang,
@@ -531,7 +573,7 @@ class WebhookNotifier:
                     ),
                     "message_kind": "collapsible",
                     "summary": self._build_feishu_collapsible_overview(
-                        item_count=len(important_items),
+                        important_items=important_items,
                         all_items_count=all_items_count,
                         date=date,
                         lang=lang,
