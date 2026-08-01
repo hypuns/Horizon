@@ -162,37 +162,37 @@
   },
   "digest": {
     "max_analysis_items": 30,
-    "max_items": 15,
+    "max_items": 30,
     "profile_order": ["finance-news", "tech-news", "tech-blog"],
     "category_groups": {
       "A股与中国市场": {
         "name": "A股与中国市场",
         "categories": ["a-share", "china-finance"],
-        "limit": 5
+        "limit": 12
       },
       "美股与海外市场": {
         "name": "美股与海外市场",
         "categories": ["us-stocks", "us-finance", "global-business"],
-        "limit": 4
+        "limit": 10
       },
       "外汇与宏观": {
         "name": "外汇与宏观",
         "categories": ["fx", "macro"],
-        "limit": 4
+        "limit": 10
       },
       "财报与公司事件": {
         "name": "财报与公司事件",
         "categories": ["earnings"],
-        "limit": 3
+        "limit": 8
       },
       "国际局势与风险": {
         "name": "国际局势与风险",
         "categories": ["geopolitics", "global-finance", "finance-search"],
-        "limit": 4
+        "limit": 10
       }
     },
     "default_group": "其他重要财经新闻",
-    "default_group_limit": 5
+    "default_group_limit": 15
   },
   "webhook": {
     "enabled": true,

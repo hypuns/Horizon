@@ -12,7 +12,7 @@ from rich.console import Console
 from dataclasses import asdict, dataclass
 from enum import Enum
 from urllib.parse import urlsplit, urlunsplit
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, List, Optional, Union, cast
 import httpx
 
@@ -23,6 +23,14 @@ from ..ai.summarizer import DailySummarizer
 from ..url_security import UnsafeURLError, safe_request, validate_http_url
 
 logger = logging.getLogger(__name__)
+
+_BEIJING_TZ = timezone(timedelta(hours=8))
+_DOMESTIC_CATEGORIES = {
+    "a-share",
+    "china-finance",
+    "fx",
+    "macro",
+}
 
 
 class WebhookDeliveryStatus(str, Enum):
@@ -412,13 +420,15 @@ class WebhookNotifier:
                     title = self._item_display_title(item, lang)
                     score = self._item_score(item)
                     score_suffix = f" ⭐️ {score}/10" if score != "?" else ""
-                    lines.append(f"{index}. {title}{score_suffix}")
+                    time_label = self._beijing_time_label(item)
+                    lines.append(f"{index}. [{time_label} 北京] {title}{score_suffix}")
                 highlight_block = "\n".join(lines)
             return (
                 f"# Horizon 每日速递 - {date}\n\n"
-                f"> 已分析 {all_items_count} 条内容，本次推送 {item_count} 条候选资讯。"
+                f"> 已分析 {all_items_count} 条内容，下方完整列出 {item_count} 条资讯；"
+                f"重点关注最多列出 15 条。"
                 f"{highlight_block}\n\n"
-                "下方为全部推送资讯，点击新闻面板即可在飞书内展开阅读全文。"
+                "资讯按北京时间倒序排列，并划分为“国内财经与市场”和“国际财经与重大事件”。"
             )
 
         if item_count == 0:
@@ -434,13 +444,14 @@ class WebhookNotifier:
                 title = self._item_display_title(item, lang)
                 score = self._item_score(item)
                 score_suffix = f" ⭐️ {score}/10" if score != "?" else ""
-                lines.append(f"{index}. {title}{score_suffix}")
+                time_label = self._beijing_time_label(item)
+                lines.append(f"{index}. [{time_label} Beijing] {title}{score_suffix}")
             highlight_block = "\n".join(lines)
         return (
             f"# Horizon Daily - {date}\n\n"
-            f"> Analyzed {all_items_count} items and pushed {item_count} candidate items."
+            f"> Analyzed {all_items_count} items and listed all {item_count} pushed items."
             f"{highlight_block}\n\n"
-            "All pushed items are listed below. Expand a panel to read the details."
+            "Items are sorted by Beijing time and split into domestic and international sections."
         )
 
     @staticmethod
@@ -458,10 +469,66 @@ class WebhookNotifier:
         scored: list[tuple[int, ContentItem, float]] = []
         for index, item in enumerate(items, start=1):
             score = self._item_score(item)
-            if isinstance(score, (int, float)) and score >= 7:
+            if isinstance(score, (int, float)):
                 scored.append((index, item, float(score)))
         scored.sort(key=lambda entry: entry[2], reverse=True)
-        return [(index, item) for index, item, _ in scored[:5]]
+        return [(index, item) for index, item, _ in scored[:15]]
+
+    @staticmethod
+    def _beijing_time(item: ContentItem) -> datetime:
+        published = item.published_at
+        if published.tzinfo is None:
+            published = published.replace(tzinfo=timezone.utc)
+        return published.astimezone(_BEIJING_TZ)
+
+    @staticmethod
+    def _beijing_time_label(item: ContentItem) -> str:
+        return WebhookNotifier._beijing_time(item).strftime("%m-%d %H:%M")
+
+    @staticmethod
+    def _is_domestic_item(item: ContentItem) -> bool:
+        category = item.metadata.get("category")
+        if isinstance(category, str) and category in _DOMESTIC_CATEGORIES:
+            return True
+
+        haystack = " ".join(
+            str(part or "")
+            for part in [
+                item.title,
+                item.author,
+                item.metadata.get("channel"),
+                item.metadata.get("source_name"),
+                category,
+            ]
+        )
+        domestic_terms = [
+            "a股",
+            "A股",
+            "中国",
+            "人民币",
+            "央行",
+            "财政",
+            "港股",
+            "沪深",
+            "北向",
+            "南向",
+        ]
+        return any(term in haystack for term in domestic_terms)
+
+    def _split_and_sort_items(
+        self, items: List[ContentItem]
+    ) -> tuple[List[ContentItem], List[ContentItem]]:
+        domestic: List[ContentItem] = []
+        international: List[ContentItem] = []
+        for item in items:
+            if self._is_domestic_item(item):
+                domestic.append(item)
+            else:
+                international.append(item)
+        key = self._beijing_time
+        domestic.sort(key=key, reverse=True)
+        international.sort(key=key, reverse=True)
+        return domestic, international
 
     def _build_feishu_collapsible_body(
         self,
@@ -480,23 +547,28 @@ class WebhookNotifier:
         )
         elements: list[dict[str, Any]] = [_markdown(overview)]
 
-        view = summarizer.build_view(important_items, lang)
-        for group in view.groups:
-            elements.append(_markdown(f"## {group.name}"))
-            for view_item in group.items:
-                score_suffix = (
-                    f" ⭐️ {view_item.score}/10"
-                    if view_item.score != "?"
-                    else ""
-                )
-                panel_title = f"{view_item.index}. {view_item.title}{score_suffix}"
+        domestic_items, international_items = self._split_and_sort_items(important_items)
+        sections = [
+            ("国内财经与市场", domestic_items),
+            ("国际财经与重大事件", international_items),
+        ]
+        panel_index = 1
+        total_items = len(important_items)
+        for section_title, section_items in sections:
+            elements.append(_markdown(f"## {section_title}（{len(section_items)}条）"))
+            for item in section_items:
+                score = self._item_score(item)
+                score_suffix = f" ⭐️ {score}/10" if score != "?" else ""
+                title = self._item_display_title(item, lang)
+                time_label = self._beijing_time_label(item)
+                panel_title = f"{panel_index}. [{time_label} 北京] {title}{score_suffix}"
                 item_content = summarizer.generate_webhook_item(
-                    view_item.item,
+                    item,
                     language=lang,
-                    index=view_item.index,
-                    total=view_item.group_count,
-                    title=view_item.title,
-                    score=view_item.score,
+                    index=panel_index,
+                    total=total_items,
+                    title=title,
+                    score=score,
                 )
                 elements.append(
                     _collapsible_panel(
@@ -504,6 +576,7 @@ class WebhookNotifier:
                         _format_markdown_for_webhook(item_content),
                     )
                 )
+                panel_index += 1
 
         return {
             "msg_type": "interactive",
